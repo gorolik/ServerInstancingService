@@ -13,7 +13,7 @@ public class PortService : IPortService
     {
         _availablePorts = new ConcurrentQueue<int>();
 
-        for (int i = 7777; i < 8000; i++) 
+        for (int i = 7000; i < 7016; i++) 
             _availablePorts.Enqueue(i);
     }
 
