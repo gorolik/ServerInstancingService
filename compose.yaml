@@ -1,0 +1,15 @@
+﻿version: '3.8'
+
+services:
+  airwars-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: server-instancing-service:latest
+    container_name: aw-sis
+    ports:
+      - "5000:8080"
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8080
