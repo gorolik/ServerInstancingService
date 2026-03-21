@@ -23,14 +23,14 @@ public class InstanceAllocationController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Allocate([FromBody]AllocationRequest allocationRequest)
+    public async Task<IActionResult> Allocate([FromBody]AllocationRequest allocationRequest)
     {
         if (allocationRequest.ApiKey != _configuration["apikey"])
             return Unauthorized();
 
         try
         {
-            AllocationData allocationData = _allocatorService.AllocateServerInstance();
+            AllocationData allocationData = await _allocatorService.AllocateServerInstanceAsync();
             return Ok(allocationData);
         }
         catch (Exception e)

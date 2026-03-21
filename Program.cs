@@ -1,8 +1,18 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using ServerInstancingService.Model.Services;
+using ServerInstancingService.Model.Services.ServerInstances;
+using ServerInstancingService.Model.Services.ServerInstances.AsDocker;
+using ServerInstancingService.Model.Services.ServerInstances.AsProcess;
 
 var builder = WebApplication.CreateBuilder(args);
+
+string launcherType = builder.Configuration["GameServer:LauncherType"] ?? "Local";
+
+if (launcherType == "Docker")
+    builder.Services.AddSingleton<IServerLauncher, DockerLauncher>();
+else
+    builder.Services.AddSingleton<IServerLauncher, LocalProcessLauncher>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

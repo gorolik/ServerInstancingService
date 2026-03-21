@@ -1,17 +1,21 @@
 ﻿using System.Diagnostics;
 using ServerInstancingService.Model.Data;
+using ServerInstancingService.Model.Services.ServerInstances;
 
 namespace ServerInstancingService.Model.Services;
 
 public class InstanceAllocatorService
 {
-    private readonly List<ServerInstance> _serverInstances;
     private readonly IPortService _portService;
+    private AllocatorService _allocatorService;
+    private IServerLauncher _serverLauncher;
 
-    public InstanceAllocatorService(IPortService portService)
+    public InstanceAllocatorService(IPortService portService, 
+        AllocatorService allocatorService, IServerLauncher serverLauncher)
     {
-        _serverInstances = new List<ServerInstance>();
         _portService = portService;
+        _allocatorService = allocatorService;
+        _serverLauncher = serverLauncher;
     }
 
     /// <summary>
@@ -19,67 +23,22 @@ public class InstanceAllocatorService
     /// </summary>
     /// <exception cref="Exception">В случае, когда нет свободного порта
     /// или неудачи запуска процесса</exception>
-    public AllocationData AllocateServerInstance()
+    public async Task<AllocationData> AllocateServerInstanceAsync()
     {
-        AllocationData allocationData = GetAllocationData();
-        CreateServerInstance(Convert.ToInt32(allocationData?.Port));
+        AllocationData allocationData = _allocatorService.GetAllocationData();
+        int port = Convert.ToInt32(allocationData.Port);
+        
+        IServerInstance instance = await _serverLauncher.LaunchAsync(port);
+        
+        instance.OnClosed += OnServerInstanceClosed;
 
         return allocationData;
     }
-    
-    /// <summary>
-    /// Выделяет доступный порт и возвращает данные для подключения
-    /// </summary>
-    /// <returns>Данные подключения к серверу</returns>
-    private AllocationData GetAllocationData()
+
+    private void OnServerInstanceClosed(IServerInstance instance)
     {
-        int port = _portService.TryGetPort();
-
-        AllocationData allocationData = new AllocationData
-        {
-            Ip = "127.0.0.1",
-            Port = port.ToString(),
-        };
-
-        return allocationData;
-    }
-    
-    /// <summary>
-    /// Запускает процесс сервера, формирует инстанс и добавляет его в коллекцию экземпляров.
-    /// Подписывается на событие о закрытии экземпляра.
-    /// </summary>
-    /// <param name="port">Порт, который будет слушать экземпляр сервера</param>
-    private void CreateServerInstance(int port)
-    {
-        ProcessStartInfo startInfo = new ProcessStartInfo()
-        {
-            FileName = "C:\\Users\\Maksim\\Desktop\\Air Wars server\\Air Wars.exe",
-            Arguments = $"-batchmode -nographics -headless -server_ip 0.0.0.0 -server_port {port}",
-            UseShellExecute = false,
-
-            // Для теста оставляем окно видимым
-            CreateNoWindow = false
-        };
+        instance.OnClosed -= OnServerInstanceClosed;
         
-        Process serverProcess = new Process()
-        {
-            StartInfo = startInfo,
-            EnableRaisingEvents = true,
-        };
-
-        ServerInstance serverInstance = new ServerInstance(serverProcess, port);
-        serverInstance.OnClosed += OnServerInstanceClosed;
-        
-        _serverInstances.Add(serverInstance);
-        
-        serverProcess.Start();
-    }
-
-    private void OnServerInstanceClosed(ServerInstance instance)
-    {
         _portService.ReturnPort(instance.Port);
-        instance.Process.Dispose();
-
-        _serverInstances.Remove(instance);
     }
 }
