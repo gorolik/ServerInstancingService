@@ -16,9 +16,10 @@ else
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IPortService, PortService>();
-builder.Services.AddSingleton<InstanceAllocatorService>();
 builder.Services.AddSingleton<LoggerService>();
+builder.Services.AddSingleton<IPortService, PortService>();
+builder.Services.AddSingleton<AllocatorService>();
+builder.Services.AddSingleton<InstanceAllocatorService>();
 
 builder.Services.AddRateLimiter(options =>
 {
