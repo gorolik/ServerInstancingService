@@ -8,9 +8,9 @@ public interface IServerInstance
     int Port { get; }
     
     /// <summary>
-    /// Событие, вызываемое при остановке (падении/закрытии) сервера.
+    /// Событие, вызываемое при остановке сервера.
     /// </summary>
-    event Action<IServerInstance> OnClosed;
+    event Action<IServerInstance, int> OnClosed;
 
     /// <summary>
     /// Принудительно останавливает сервер.

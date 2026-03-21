@@ -7,7 +7,7 @@ public class ProcessInstance : IServerInstance
     private readonly Process _process;
     public int Port { get; }
     
-    public event Action<IServerInstance>? OnClosed;
+    public event Action<IServerInstance, int>? OnClosed;
 
     public ProcessInstance(Process process, int port)
     {
@@ -21,8 +21,11 @@ public class ProcessInstance : IServerInstance
     private void OnProcessExited(object? sender, EventArgs e)
     {
         _process.Exited -= OnProcessExited;
+        
+        int exitCode = _process.ExitCode; 
+        
         _process.Dispose();
-        OnClosed?.Invoke(this);
+        OnClosed?.Invoke(this, exitCode);
     }
 
     public Task StopAsync()

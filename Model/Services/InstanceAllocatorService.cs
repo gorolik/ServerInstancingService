@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using ServerInstancingService.Model.Data;
 using ServerInstancingService.Model.Services.ServerInstances;
+using ServerInstancingService.Utils;
 
 namespace ServerInstancingService.Model.Services;
 
@@ -9,13 +10,15 @@ public class InstanceAllocatorService
     private readonly IPortService _portService;
     private AllocatorService _allocatorService;
     private IServerLauncher _serverLauncher;
+    private LoggerService _loggerService;
 
     public InstanceAllocatorService(IPortService portService, 
-        AllocatorService allocatorService, IServerLauncher serverLauncher)
+        AllocatorService allocatorService, IServerLauncher serverLauncher, LoggerService loggerService)
     {
         _portService = portService;
         _allocatorService = allocatorService;
         _serverLauncher = serverLauncher;
+        _loggerService = loggerService;
     }
 
     /// <summary>
@@ -35,9 +38,12 @@ public class InstanceAllocatorService
         return allocationData;
     }
 
-    private void OnServerInstanceClosed(IServerInstance instance)
+    private void OnServerInstanceClosed(IServerInstance instance, int exitCode)
     {
         instance.OnClosed -= OnServerInstanceClosed;
+
+        string exitString = ExitCodeInterpreter.Translate(exitCode, out var logType);
+        _loggerService.Log(logType, "Server closed: " + exitString);
         
         _portService.ReturnPort(instance.Port);
     }

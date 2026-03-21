@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using ServerInstancingService.Model;
 using ServerInstancingService.Model.Data;
 using ServerInstancingService.Model.Services;
 
@@ -15,9 +16,12 @@ public class InstanceAllocationController : ControllerBase
 {
     private readonly InstanceAllocatorService _allocatorService;
     private readonly IConfiguration _configuration;
+    private LoggerService _loggerService;
 
-    public InstanceAllocationController(InstanceAllocatorService allocatorService, IConfiguration configuration)
+    public InstanceAllocationController(InstanceAllocatorService allocatorService, IConfiguration configuration,
+        LoggerService loggerService)
     {
+        _loggerService = loggerService;
         _allocatorService = allocatorService;
         _configuration = configuration;
     }
@@ -31,11 +35,12 @@ public class InstanceAllocationController : ControllerBase
         try
         {
             AllocationData allocationData = await _allocatorService.AllocateServerInstanceAsync();
+            _loggerService.Log(LogType.Info, "Allocation successfully: " + allocationData);
             return Ok(allocationData);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            _loggerService.Log(LogType.Error, "Allocation unsuccessfully: " + e.Message);
             return Problem(e.Message);
         }
     }

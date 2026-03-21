@@ -6,9 +6,12 @@ namespace ServerInstancingService.Model.Services.ServerInstances.AsDocker;
 public class DockerLauncher : IServerLauncher
 {
     private readonly DockerClient _client;
+    
+    private LoggerService _loggerService;
 
-    public DockerLauncher()
+    public DockerLauncher(LoggerService loggerService)
     {
+        _loggerService = loggerService;
         _client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
     }
 
@@ -30,12 +33,16 @@ public class DockerLauncher : IServerLauncher
                 },
                 AutoRemove = true
             },
-            Cmd = new List<string> { "-port", portStr }
+            Cmd = new List<string>
+            {
+                "-port", portStr,
+                "-logfile", "-"
+            }
         };
 
         var response = await _client.Containers.CreateContainerAsync(parameters);
         await _client.Containers.StartContainerAsync(response.ID, new ContainerStartParameters());
 
-        return new DockerInstance(_client, response.ID, port);
+        return new DockerInstance(_client, response.ID, port, _loggerService);
     }
 }
