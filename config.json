@@ -3,7 +3,7 @@
 
   "GameServer": {
     "_valuesOfLauncherType": "Local - process launching, Docker - docker launching",
-    "LauncherType": "Local",
+    "LauncherType": "Docker",
     "IpAddress": "157.22.172.74"
   }
 }
