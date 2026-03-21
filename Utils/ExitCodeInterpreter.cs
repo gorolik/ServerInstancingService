@@ -16,13 +16,16 @@ public static class ExitCodeInterpreter
                 return "Completed (0)";
             case 1:
                 logType = LogType.Error;
-                return "Launch parameters interpretation problem (1)";
+                return "Unity unhandled exception (1)";
             case 2:
                 logType = LogType.Info;
                 return "All players disconnected (2)";
             case 3:
                 logType = LogType.Info;
                 return "Match ended (3)";
+            case 4:
+                logType = LogType.Error;
+                return "Launch parameters interpretation problem (4)";
             case 137:
                 logType = LogType.Error;
                 return "Killed by backend (OOM / Kill, 137)";

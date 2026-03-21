@@ -35,8 +35,8 @@ public class DockerLauncher : IServerLauncher
             },
             Cmd = new List<string>
             {
-                "-port", portStr,
-                "-logfile", "-"
+                "-logfile", "-",
+                "-server_port", portStr,
             }
         };
 
