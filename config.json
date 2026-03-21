@@ -4,6 +4,7 @@
   "GameServer": {
     "_valuesOfLauncherType": "Local - process launching, Docker - docker launching",
     "LauncherType": "Local",
-    "IpAddress": "157.22.172.74"
+    "IpAddress": "157.22.172.74",
+    "MaxConcurrentServers": 3
   }
 }
