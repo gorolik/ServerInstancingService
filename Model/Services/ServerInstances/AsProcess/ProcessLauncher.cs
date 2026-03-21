@@ -9,7 +9,7 @@ public class LocalProcessLauncher : IServerLauncher
         var startInfo = new ProcessStartInfo
         {
             FileName = @"C:\Users\Maksim\Desktop\Air Wars server\Air Wars.exe",
-            Arguments = $"-batchmode -nographics -headless -server_port {port}",
+            Arguments = $"-batchmode -nographics -logfile - -server_port {port}",
             UseShellExecute = false,
             CreateNoWindow = false
         };
