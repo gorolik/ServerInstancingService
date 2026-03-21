@@ -11,3 +11,5 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
+      - GameServer__LauncherType=Docker
+      - GameServer__IpAddress=157.22.172.74

@@ -7,6 +7,10 @@ using ServerInstancingService.Model.Services.ServerInstances.AsProcess;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("config.json")
+    .AddEnvironmentVariables();
+
 string launcherType = builder.Configuration["GameServer:LauncherType"] ?? "Local";
 
 if (launcherType == "Docker")
@@ -36,8 +40,6 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddControllers();
 
 var app = builder.Build();
-
-builder.Configuration.AddJsonFile("config.json");
 
 app.UseHttpsRedirection();
 app.UseRateLimiter();
