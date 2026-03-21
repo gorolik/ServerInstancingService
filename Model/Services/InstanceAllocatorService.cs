@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using ServerInstancingService.Model.Data;
+﻿using ServerInstancingService.Model.Data;
 using ServerInstancingService.Model.Services.ServerInstances;
 using ServerInstancingService.Utils;
 
@@ -8,6 +7,9 @@ namespace ServerInstancingService.Model.Services;
 public class InstanceAllocatorService
 {
     private readonly IPortService _portService;
+
+    private int _currentAllocationsCount = 0;
+    
     private AllocatorService _allocatorService;
     private IServerLauncher _serverLauncher;
     private LoggerService _loggerService;
@@ -28,11 +30,12 @@ public class InstanceAllocatorService
     /// или неудачи запуска процесса</exception>
     public async Task<AllocationData> AllocateServerInstanceAsync()
     {
-        AllocationData allocationData = _allocatorService.GetAllocationData();
+        AllocationData allocationData = _allocatorService.GetAllocationData(_currentAllocationsCount);
         int port = Convert.ToInt32(allocationData.Port);
         
-        IServerInstance instance = await _serverLauncher.LaunchAsync(port);
+        _currentAllocationsCount++;
         
+        IServerInstance instance = await _serverLauncher.LaunchAsync(port);
         instance.OnClosed += OnServerInstanceClosed;
 
         return allocationData;
@@ -46,5 +49,6 @@ public class InstanceAllocatorService
         _loggerService.Log(logType, "Server closed: " + exitString);
         
         _portService.ReturnPort(instance.Port);
+        _currentAllocationsCount--;
     }
 }
