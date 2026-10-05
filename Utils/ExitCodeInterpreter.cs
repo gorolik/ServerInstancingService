@@ -26,6 +26,9 @@ public static class ExitCodeInterpreter
             case 4:
                 logType = LogType.Error;
                 return "Launch parameters interpretation problem (4)";
+            case 5:
+                logType = LogType.Error;
+                return "Server was closed by timeout (5)";
             case 137:
                 logType = LogType.Error;
                 return "Killed by backend (OOM / Kill, 137)";

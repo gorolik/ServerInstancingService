@@ -6,13 +6,13 @@
     image: server-instancing-service:latest
     container_name: aw-sis
     ports:
-      - "5000:8080"
+      - "127.0.0.1:5000:8080"
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
       - GameServer__LauncherType=Docker
-      - GameServer__IpAddress=157.22.172.74
+      - GameServer__IpAddress=airwars.online
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
