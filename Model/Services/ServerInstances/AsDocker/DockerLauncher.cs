@@ -12,7 +12,13 @@ public class DockerLauncher : IServerLauncher
     public DockerLauncher(LoggerService loggerService)
     {
         _loggerService = loggerService;
-        _client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+        
+        // Считываем хост из docker-compose (tcp://docker-proxy:2375)
+        // Либо фоллбэк на сокет, если вы запуск локально без compose
+        string dockerHost = Environment.GetEnvironmentVariable("DOCKER_HOST") 
+                            ?? "unix:///var/run/docker.sock";
+
+        _client = new DockerClientConfiguration(new Uri(dockerHost)).CreateClient();
     }
 
     public async Task<IServerInstance> LaunchAsync(int port)
