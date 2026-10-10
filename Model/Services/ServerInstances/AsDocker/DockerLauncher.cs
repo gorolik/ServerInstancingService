@@ -5,11 +5,15 @@ namespace ServerInstancingService.Model.Services.ServerInstances.AsDocker;
 
 public class DockerLauncher : IServerLauncher
 {
-    private readonly DockerClient _client;
+    private const string _apiKeyConfigName = "SERVER_API_KEY";
+    private const string _targetContainerEnvName = "SERVER_API_KEY";
     
+    private readonly DockerClient _client;
+    private readonly string _serverApiKey;
+
     private LoggerService _loggerService;
 
-    public DockerLauncher(LoggerService loggerService)
+    public DockerLauncher(LoggerService loggerService, IConfiguration configuration)
     {
         _loggerService = loggerService;
         
@@ -19,18 +23,30 @@ public class DockerLauncher : IServerLauncher
                             ?? "unix:///var/run/docker.sock";
 
         _client = new DockerClientConfiguration(new Uri(dockerHost)).CreateClient();
+        
+        _serverApiKey = configuration[_apiKeyConfigName] ?? string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(_serverApiKey)) 
+            _loggerService.Log(LogType.Warning, "[Security] SERVER_API_KEY is null or empty in DockerLauncher configuration.");
     }
 
     public async Task<IServerInstance> LaunchAsync(int port)
     {
         string portStr = port.ToString();
-        string containerName = $"aw-match-{port}-{Guid.NewGuid().ToString("N")[..8]}";
+        string containerName = $"aw-match-{port}-{Guid.NewGuid().ToString("N")[..4]}";
 
         var parameters = new CreateContainerParameters
         {
             Image = "airwars-game-server:latest",
             Name = containerName,
-            ExposedPorts = new Dictionary<string, EmptyStruct> { { $"{portStr}/udp", default } },
+            Env = new List<string>
+            {
+                $"{_targetContainerEnvName}={_serverApiKey}"
+            },
+            ExposedPorts = new Dictionary<string, EmptyStruct>
+            {
+                { $"{portStr}/udp", default }
+            },
             HostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string, IList<PortBinding>>

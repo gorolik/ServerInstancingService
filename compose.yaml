@@ -36,6 +36,8 @@ services:
     ports:
       - "127.0.0.1:5000:8080"
     restart: unless-stopped
+    env_file:
+      - ../.env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
