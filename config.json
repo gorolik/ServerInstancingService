@@ -1,8 +1,0 @@
-﻿{
-  "GameServer": {
-    "_valuesOfLauncherType": "Local - process launching, Docker - docker launching",
-    "LauncherType": "Docker",
-    "IpAddress": "airwars.online",
-    "MaxConcurrentServers": 3
-  }
-}
