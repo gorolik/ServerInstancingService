@@ -1,10 +1,8 @@
 ﻿{
-  "apikey": "Hg6Tf6f76Fif87ulXsq92",
-
   "GameServer": {
     "_valuesOfLauncherType": "Local - process launching, Docker - docker launching",
     "LauncherType": "Docker",
-    "IpAddress": "157.22.172.74",
+    "IpAddress": "airwars.online",
     "MaxConcurrentServers": 3
   }
 }
