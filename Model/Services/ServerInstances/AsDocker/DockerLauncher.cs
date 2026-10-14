@@ -7,9 +7,15 @@ public class DockerLauncher : IServerLauncher
 {
     private const string _apiKeyConfigName = "SERVER_API_KEY";
     private const string _targetContainerEnvName = "SERVER_API_KEY";
+    private const string _certPathConfigName = "SSL_CERT_PATH";
+    private const string _keyPathConfigName = "SSL_KEY_PATH";
+    private const string _targetCertEnvName = "SSL_CERT_BASE64";
+    private const string _targetKeyEnvName = "SSL_KEY_BASE64";
     
     private readonly DockerClient _client;
     private readonly string _serverApiKey;
+    private readonly string _sslCertPath;
+    private readonly string _sslKeyPath;
 
     private LoggerService _loggerService;
 
@@ -25,6 +31,8 @@ public class DockerLauncher : IServerLauncher
         _client = new DockerClientConfiguration(new Uri(dockerHost)).CreateClient();
         
         _serverApiKey = configuration[_apiKeyConfigName] ?? string.Empty;
+        _sslCertPath = configuration[_certPathConfigName] ?? "/etc/letsencrypt/live/airwars.online/fullchain.pem";
+        _sslKeyPath = configuration[_keyPathConfigName] ?? "/etc/letsencrypt/live/airwars.online/privkey.pem";
         
         if (string.IsNullOrWhiteSpace(_serverApiKey)) 
             _loggerService.Log(LogType.Warning, "[Security] SERVER_API_KEY is null or empty in DockerLauncher configuration.");
@@ -35,23 +43,28 @@ public class DockerLauncher : IServerLauncher
         string portStr = port.ToString();
         string containerName = $"aw-match-{port}-{Guid.NewGuid().ToString("N")[..4]}";
 
+        string certBase64 = Convert.ToBase64String(await File.ReadAllBytesAsync(_sslCertPath));
+        string keyBase64 = Convert.ToBase64String(await File.ReadAllBytesAsync(_sslKeyPath));
+        
         var parameters = new CreateContainerParameters
         {
             Image = "airwars-game-server:latest",
             Name = containerName,
             Env = new List<string>
             {
-                $"{_targetContainerEnvName}={_serverApiKey}"
+                $"{_targetContainerEnvName}={_serverApiKey}",
+                $"{_targetCertEnvName}={certBase64}",
+                $"{_targetKeyEnvName}={keyBase64}"
             },
             ExposedPorts = new Dictionary<string, EmptyStruct>
             {
-                { $"{portStr}/udp", default }
+                { $"{portStr}/tcp", default }
             },
             HostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string, IList<PortBinding>>
                 {
-                    { $"{portStr}/udp", new List<PortBinding> { new() { HostPort = portStr } } }
+                    { $"{portStr}/tcp", new List<PortBinding> { new() { HostPort = portStr } } }
                 },
                 // Ограничения ресурсов
                 Memory = 1024L * 1024 * 512,      // Лимит 512 МБ предотвратят падение сервера по OOM

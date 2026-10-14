@@ -42,6 +42,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
       - DOCKER_HOST=tcp://docker-proxy:2375
+      - SSL_CERT_PATH=/etc/letsencrypt/live/airwars.online/fullchain.pem
+      - SSL_KEY_PATH=/etc/letsencrypt/live/airwars.online/privkey.pem
+    volumes:
+      # Монтируем всю директорию letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - docker-proxy
     networks:
