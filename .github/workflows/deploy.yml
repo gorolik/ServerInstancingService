@@ -1,20 +1,54 @@
-name: Deploy Backend to Server
+name: Build and Deploy to Server
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+env:
+  IMAGE_TAG: server-instancing-service:latest
+  PROJECT_DIR: /opt/airwars/ServerInstancingService
+  SERVICE_NAME: airwars-backend
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Connect and Deploy
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          /opt/airwars/deploy_aw_sis.sh
+      - name: 1. Checkout исходного кода
+        uses: actions/checkout@v4
+
+      - name: 2. Настройка Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 3. Сборка Docker-образа на раннере GitHub
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          tags: ${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 4. Настройка SSH-ключа для подключения к серверу
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_key
+          chmod 600 ~/.ssh/id_key
+
+      - name: 5. Потоковая передача образа по SSH и перезапуск контейнера
+        run: |
+          SSH_OPTS="-i ~/.ssh/id_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15"
+
+          # Передаем сжатый образ и загружаем в Docker на сервере
+          docker save ${{ env.IMAGE_TAG }} | zstd -T0 | ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.HOST }} "zstd -d | docker load"
+
+          # Перезапускаем контейнер из нового образа и удаляем старый висячий образ
+          ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.HOST }} "
+            set -e
+            cd ${{ env.PROJECT_DIR }}
+            docker compose up -d --no-deps ${{ env.SERVICE_NAME }}
+            docker image prune -f
+          "

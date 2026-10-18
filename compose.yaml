@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   docker-proxy:
     image: tecnativa/docker-socket-proxy:latest
     container_name: aw-docker-proxy
@@ -28,9 +26,6 @@ services:
       - internal-management
   
   airwars-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: server-instancing-service:latest
     container_name: aw-sis
     ports:
