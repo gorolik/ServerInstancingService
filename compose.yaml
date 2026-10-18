@@ -4,23 +4,18 @@
     container_name: aw-docker-proxy
     restart: unless-stopped
     environment:
-      # Разрешаем операции управления контейнерами (создание, запуск, чтение статуса)
       - CONTAINERS=1
       - POST=1
-      # Обязательно разрешаем DELETE, если бэкенд удаляет контейнеры вручную
       - DELETE=1
-      # Разрешаем пинг/версию (Docker.DotNet может запрашивать при старте)
       - VERSION=1
       - PING=1
       
-      # Запрещаем монтирование томов хоста, управление сетями хоста, swarms
       - VOLUMES=0
       - NETWORKS=0
       - SYSTEM=0
       - EXEC=0
       - IMAGES=0
     volumes:
-      # Только прокси монтирует сокет в режиме Read-Only (ro)
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - internal-management
@@ -49,6 +44,5 @@
       - default
         
 networks:
-  # Изолированная сеть без выхода в интернет: только для связи бэкенда и прокси
   internal-management:
     internal: true

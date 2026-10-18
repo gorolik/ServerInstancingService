@@ -38,14 +38,20 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_key
           chmod 600 ~/.ssh/id_key
 
-      - name: 5. Потоковая передача образа по SSH и перезапуск контейнера
+      - name: 5. Передача compose.yaml, образа и перезапуск
         run: |
           SSH_OPTS="-i ~/.ssh/id_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15"
 
-          # Передаем сжатый образ и загружаем в Docker на сервере
+          echo "📁 Создаем директорию на сервере (если ее нет)..."
+          ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.HOST }} "mkdir -p ${{ env.PROJECT_DIR }}"
+
+          echo "📄 Копируем compose.yaml на сервер..."
+          scp $SSH_OPTS ./compose.yaml ${{ secrets.SERVER_USER }}@${{ secrets.HOST }}:${{ env.PROJECT_DIR }}/compose.yaml
+
+          echo "🐳 Передаем Docker-образ..."
           docker save ${{ env.IMAGE_TAG }} | zstd -T0 | ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.HOST }} "zstd -d | docker load"
 
-          # Перезапускаем контейнер из нового образа и удаляем старый висячий образ
+          echo "🔄 Перезапускаем контейнер..."
           ssh $SSH_OPTS ${{ secrets.SERVER_USER }}@${{ secrets.HOST }} "
             set -e
             cd ${{ env.PROJECT_DIR }}
