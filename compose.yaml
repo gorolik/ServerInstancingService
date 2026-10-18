@@ -40,8 +40,8 @@
       - SSL_CERT_PATH=/etc/letsencrypt/live/your.domain/fullchain.pem
       - SSL_KEY_PATH=/etc/letsencrypt/live/your.domain/privkey.pem
     volumes:
-      # Монтируем всю директорию letsencrypt
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./config.json:/app/config.json:ro
     depends_on:
       - docker-proxy
     networks:
